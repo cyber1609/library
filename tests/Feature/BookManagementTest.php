@@ -6,7 +6,7 @@ use App\Book;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class BookReservationTest extends TestCase
+class BookManagementTest extends TestCase
 {
     use RefreshDatabase;
     /**
@@ -14,16 +14,16 @@ class BookReservationTest extends TestCase
      */
     public function a_book_can_be_added_to_the_library()
     {
-        $this->withoutExceptionHandling();
 
         $response = $this->post('/books', [
             'title' => 'A very interesting book',
             'author' => 'Ion Cojocaru'
         ]);
 
-        $response->assertOk();
-        $this->assertCount(1, Book::all());
+        $book = Book::first();
 
+        $this->assertCount(1, Book::all());
+        $response->assertRedirect($book->path());
     }
 
     /** @test */
@@ -37,6 +37,7 @@ class BookReservationTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('title');
+
     }
 
     /** @test */
@@ -50,6 +51,7 @@ class BookReservationTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('author');
+
     }
 
 
@@ -58,7 +60,6 @@ class BookReservationTest extends TestCase
      */
     public function a_book_can_be_updated()
     {
-        $this->withoutExceptionHandling();
 
         $this->post('/books', [
             'title' => 'A very interesting book',
@@ -67,14 +68,36 @@ class BookReservationTest extends TestCase
 
         $book = Book::first();
 
-        $response = $this->patch('/books/' . $book->id , [
+        $response = $this->patch($book->path() , [
             'title' => 'A truly interesting book',
             'author' => 'Ion Cojocaru Vasile'
         ]);
 
-        $response->assertOk();
+
         $this->assertEquals('A truly interesting book', Book::first()->title);
         $this->assertEquals('Ion Cojocaru Vasile', Book::first()->author);
+        $response->assertRedirect($book->fresh()->path());
+    }
+
+    /**  @test */
+
+    public function a_book_can_be_deleted()
+    {
+
+        $this->post('/books', [
+            'title' => 'A very interesting book',
+            'author' => 'Ion Cojocaru'
+        ]);
+
+        $this->assertCount(1, Book::all());
+
+        $book = Book::first();
+
+        $response = $this->delete($book->path());
+
+
+        $this->assertCount(0, Book::all());
+        $response->assertRedirect('/books');
 
     }
 
