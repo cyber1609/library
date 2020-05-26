@@ -20,3 +20,9 @@ Route::get('/books', 'BooksController@index');
 
 Route::post('/author', 'AuthorsController@store');
 
+Route::post('/checkout/{book}', 'CheckoutBookController@store');
+
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
